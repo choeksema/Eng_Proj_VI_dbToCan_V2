@@ -49,6 +49,31 @@ int main(int argc, char** argv)
     
     cout << "Currently there are no database interactions" << endl;
 
+    string sabbath = "sabbath";
+    if ((2 == argc) && (sabbath.compare(argv[1]) == 0))
+    {
+	cout << "Running in Sabbath mode" << endl;
+
+	int floor = 1;
+
+	while(1)
+	{
+	    int newState = elevator.transition(floor);
+	    if(newState == 0)
+		cout << "Elevator is moving" << endl;
+
+	    else
+		cout << "Elevator is at " << newState << endl;
+
+	    sleep(30);    // Let people get off/on
+
+	    floor++;
+	    if (floor > 3)
+		floor = 1;
+	}
+    }
+    
+
     while(1)
     {
 	int selection = -1;

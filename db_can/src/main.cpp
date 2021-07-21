@@ -27,55 +27,61 @@ static string errMsgStart = (string)"<" + (string)__FILE__ + (string)"@" + to_st
 
 int main(int argc, char** argv)
 {
-    // Allow the user to reset the elevator statistics table
-    /*string rst = "reset";   
-    if ((2 == argc) && (rst.compare(argv[1]) == 0))
-    {
-        if (resetElevatorStats())
-        {
-            cout << "Elevator stats reset" << endl;
-        }
-    }*/
-
     cout << "Starting the elevator moving process" << endl;
     cout << "C++ Version: " << __cplusplus << endl;
 
+    /* Set up */
     Elevator elevator;
-
     DB db(elevatorAddr, elevatorUser, elevatorPswd, dbElevator);
 
-    // list<int> nodeIdsToDelete;
-    // currently, there is no syncing at the start
+    cout << "WARNING: Currently there are no database interactions" << endl;
+
+    // Check if stats should be reset?
     
-    cout << "Currently there are no database interactions" << endl;
+    // Check if demo/auto mode was requested
+    string demo = "demo";
+    bool demoMode = false;
+    if ((2 == argc) && (demo.compare(argv[1]) == 0))
+	demoMode = true;
 
-    string sabbath = "sabbath";
-    if ((2 == argc) && (sabbath.compare(argv[1]) == 0))
-    {
-	cout << "Running in Sabbath mode" << endl;
-
-	int floor = 1;
-
-	while(1)
-	{
-	    int newState = elevator.transition(floor);
-	    if(newState == 0)
-		cout << "Elevator is moving" << endl;
-
-	    else
-		cout << "Elevator is at " << newState << endl;
-
-	    sleep(30);    // Let people get off/on
-
-	    floor++;
-	    if (floor > 3)
-		floor = 1;
-	}
-    }
+    // Check if Sabbath mode should be overridden
+    string strOverride = "override";
+    bool overrideSabbathMode = false;
+    if ((2 == argc) && (strOverride.compare(argv[1]) == 0))
+	overrideSabbathMode = true;
     
 
+    // Begin running loop
     while(1)
     {
+	// Check for Sabbath mode
+	time_t now = time(0);
+	tm* dateTime = localtime(&now);
+
+	int floor = 1;
+	
+	if (!overrideSabbathMode)
+	{
+	    while (demoMode || (((dateTime->tm_hour >= 18) && (dateTime->tm_wday == 5)) 
+		&& ((dateTime->tm_hour <= 18) && (dateTime->tm_wday == 6))))    // Maybe use enums instead of values
+	    {
+		int newState = elevator.transition(floor);
+		if (newState == 0)
+		    cout << "Elevator is moving" << endl;
+		else
+		    cout << "Elevator is at " << newState << endl;
+
+		sleep(30);    // Really should start the sleep from arrival on at a floor instead of departure
+		floor++;
+		if (floor > 3)
+		    floor = 1;
+
+		now = time(0);
+		dateTime = localtime(&now);
+	    } // while (Sabbath time check)
+	}
+
+
 	int selection = -1;
 	string userIn = "";
 

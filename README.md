@@ -7,4 +7,4 @@ Currently the database reading in db_can doesn't work on the Pi server. It fails
 Run db_can to move the elevator. Includes a state machine that isn't very smart (needs some work but not sure on steps forward)
 Run web_sub to update the database as if you were the website. this allows for completely independent testing.
 
-Running db_can with arg "sabbath" activates Sabbath mode. Currently, Sabbath mode does NOT run automatically based on the day of the week.
+Running db_can with arg "demo" activates Sabbath mode (aka auto/demo mode). Sabbath mode also will run between 6PM Friday to 6PM Saturday each week. To run without Sabbath mode during this timeframe, use command line arg "override".

@@ -14,9 +14,9 @@
 #include <iostream>
 #include <sstream>
 #include "../include/string_extend.h"
+#include <cppconn/resultset_metadata.h>
 
-// String doesn't quite work as it always returns this line... (should make a log function and return location info)
-static string errMsgStart = (string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: ";
+#define		errMsgStart		(string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: "
 
 using namespace std;
 
@@ -217,24 +217,30 @@ string DB::getQuery()
  * 
  * Inputs: N/A
  *
- * Returns sql::ResultSet*: pointer to query results (nullptr indicates error)
+ * Returns <vector<vector<string>>: vector of each vectors where each row is a selected row from the database.
+ * 		The first row indicates the types from the database. (empty set indicates error)
  */
-sql::ResultSet* DB::executeRead()
+vector<vector<string>> DB::executeRead()
 {
 	if (Query.empty())
-		return nullptr;
+		return {};
 
-	sql::ResultSet* res = nullptr; 
+	vector<vector<string>> results;
 
 	try
 	{
 		if (!openConnection())
 			throw "Failed open";
-		
-		sql::Statement* stmt = Con->createStatement();
-		res = stmt->executeQuery(Query);
 
+		// Perform query
+		sql::Statement* stmt = Con->createStatement();
+		sql::ResultSet* res = stmt->executeQuery(Query);
+
+		results = resultsToVector(res);
+
+		// Cleanup
 		delete stmt;
+		delete res;
 
 		if(!closeConnection())
 			throw "Failed close";
@@ -242,15 +248,15 @@ sql::ResultSet* DB::executeRead()
 	catch(const exception& ex)
 	{
 		cout << errMsgStart << ex.what() << endl;
-		return nullptr;
+		return {};
 	}
 	catch(const char* msg)
 	{
 		cout << errMsgStart << msg << endl;
-		return nullptr;
+		return {};
 	}
 
-	return res;
+	return results;
 }
 
 
@@ -305,6 +311,58 @@ int DB::executeWrite()
 
 
 /*
+ * Method to translate a ResultSet into a vector of vectors. Each inner row contains
+ *		the results from a single row in the database. The first row indicates the types 
+ * 		contained in the respective column.
+ * This method exists since calls to sql::ResultSet::next() fail on Rasbian (ARM64) after
+ *		the sql::Connection pointer is deleted (in DB::closeConnection(). It also allows 
+ *		the sql::ResultSet pointer to be cleaned up in the same function where it was created.
+ * 
+ * Inputs: N/A
+ *
+ * Returns <vector<vector<string>>: the translated results (empty set indicates error)
+ */
+vector<vector<string>> DB::resultsToVector(sql::ResultSet* rawResults)
+{
+	// Variables
+	vector<vector<string>> results;
+	vector<string> row;
+
+	try
+	{
+		// Get info about columns to save results
+		sql::ResultSetMetaData* metaData = rawResults->getMetaData();
+		int colCount = metaData->getColumnCount();
+
+		// Save all datatypes for parsing later
+		for (int i=1; i <= colCount; i++)    // DB result info is NOT OFFSET FROM 0!
+		{
+			row.push_back(metaData->getColumnTypeName(i));
+		}
+		results.push_back(row);
+
+		// Save actual results
+		while (rawResults->next())
+		{
+			row.clear();
+			for (int i=1; i <= colCount; i++)
+			{
+				row.push_back(rawResults->getString(i));
+			}
+			results.push_back(row);
+		}
+	}
+	catch (const exception& ex)
+	{
+		cout << errMsgStart << ex.what() << endl;
+		return {};
+	}
+
+	return results;
+}
+
+
+/*
  * Method to generate a select query. Also calls execution.
  * Should be able to specify the condition joiners!
  * Could be improved to warn users when they try select an entire table (might be a large table)
@@ -314,11 +372,11 @@ int DB::executeWrite()
  *		std::list<string> colNames: names of the columns to select
  * 		std::list<DBCond> conds: conditions for which rows to select
  *
- * Returns sql::ResultSet*: pointer to query results (nullptr indicates error)
+ * Returns <vector<vector<string>>: 2D vector of query results (empty set indicates error)
  */
-sql::ResultSet* DB::select(string table, std::list<string> colNames, std::list<DBCond> conds)
+vector<vector<string>> DB::select(string table, std::list<string> colNames, std::list<DBCond> conds)
 {
-	sql::ResultSet* results = nullptr;
+	vector<vector<string>> results;
 
 	try
 	{
@@ -353,19 +411,19 @@ sql::ResultSet* DB::select(string table, std::list<string> colNames, std::list<D
 		// cout << "Query: " << Query << endl;
 		results = executeRead();
 
-		if (results == nullptr)
+		if (results.size() == 0)
 			throw "Bad results";    // Should probably create new exceptions and stuff
 
 	}
 	catch(const exception &ex)
 	{
 		cout << errMsgStart << ex.what() << endl;
-		return nullptr;
+		return {};
 	}
 	catch(const char* msg)
 	{
 		cout << errMsgStart << "Select error: " << msg << endl;
-		return nullptr;
+		return {};
 	}
 
 	return results;

@@ -16,6 +16,7 @@
 #include <string>
 #include "DB_DEFS.h"
 #include "DB_Conds_Class.h"
+#include <vector>
 
 using namespace std;
 
@@ -28,10 +29,11 @@ class DB
 	string Schema;
 	sql::Connection *Con;
 
-	sql::ResultSet* executeRead();
+	vector<vector<string>> executeRead();
 	int executeWrite();
 	bool setSchema(string);
 	bool setSchema();
+	vector<vector<string>> resultsToVector(sql::ResultSet*);
 
 public:
 	DB(string, string, string, string);
@@ -45,7 +47,7 @@ public:
 	void setQuery(string);    // Get rid of?
 	string getQuery();
 
-	sql::ResultSet* select(string, std::list<string>, std::list<DBCond>);
+	vector<vector<string>> select(string, std::list<string>, std::list<DBCond>);
 	int update(string, std::list<DBCond>, std::list<DBCond>, bool overwrite = false);
 	int insert(string, std::list<DBCond>);
 	int _delete(string, std::list<DBCond>, bool overwrite = false);

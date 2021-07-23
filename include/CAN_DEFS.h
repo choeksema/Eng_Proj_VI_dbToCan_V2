@@ -11,6 +11,11 @@
 #ifndef _CAN_DEFS_H_
 #define _CAN_DEFS_H_
 
-#define 	ID_CAR_NODE		0x1U
+// #define 	ID_CAR_NODE		0x1U
+
+
+#define 	BOTTOM_FLOOR		1
+#define 	TOP_FLOOR		3
 
 #endif
+

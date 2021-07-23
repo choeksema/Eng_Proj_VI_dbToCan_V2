@@ -18,10 +18,11 @@ int main()
 	while(1)
 	{
 		// Give the user some options (mimicking buttons)
-		int selection = -1;
+		int floor = -1;
+		int node = -1;
 		string userIn = "";
 
-		while((0 > selection) || (selection > 6))
+		while((0 > floor) || (0 > node))
 		{
 			userIn = "";
 			cout << "Pick an option:" << endl;
@@ -31,23 +32,46 @@ int main()
 			cin.clear();
 			cin >> userIn;
 
+			// WOULD PROBABLY BE BETTER TO USE ENUMS FOR VALUE ASSIGNMENTS LATER
 			if (userIn == btnNames[(int)button::one])
-				selection = (int)button::one;
+			{
+				node = 0;
+				floor = 1;
+			}
 			else if (userIn == btnNames[(int)button::two])
-				selection = (int)button::two;
+			{
+				node = 0;
+				floor = 2;
+			}
 			else if (userIn == btnNames[(int)button::three])
-				selection = (int)button::three;
+			{
+				node = 0;
+				floor = 3;
+			}
 			else if (userIn == btnNames[(int)button::upFrom1])
-				selection = (int)button::upFrom1;
+			{
+				node = 1;
+				floor = 5;
+			}
 			else if (userIn == btnNames[(int)button::dnFrom2])
-				selection = (int)button::dnFrom2;
+			{
+				node = 2;
+				floor = 4;
+			}
 			else if (userIn == btnNames[(int)button::upFrom2])
-				selection = (int)button::upFrom2;
+			{
+				node = 2;
+				floor = 5;
+			}
 			else if (userIn == btnNames[(int)button::dnFrom3])
-				selection = (int)button::dnFrom3;
+			{
+				node = 3;
+				floor = 4;
+			}
 			else
 			{
-				selection = -1;
+				node = -1;
+				floor = -1;
 				if(cin.fail())
 				{
 					cin.clear();
@@ -58,21 +82,15 @@ int main()
 
 		// YUCKY initialization of input values
 		DBCond tempCond1;
-		tempCond1.init(elevatorNetwork[(int)elevatorNetworkOffsets::date], DBCond::RELATION::EQ, "CURRENT_DATE");	
+		tempCond1.init(elevatorNetwork[(int)elevatorNetworkOffsets::timestamp], DBCond::RELATION::EQ, "DEFAULT");
 		DBCond tempCond2;
-		tempCond2.init(elevatorNetwork[(int)elevatorNetworkOffsets::time], DBCond::RELATION::EQ, "CURRENT_TIME");
+		tempCond2.init(elevatorNetwork[(int)elevatorNetworkOffsets::nodeID], DBCond::RELATION::EQ, node);
 		DBCond tempCond3;
-		tempCond3.init(elevatorNetwork[(int)elevatorNetworkOffsets::nodeID], DBCond::RELATION::EQ, "DEFAULT");
+		tempCond3.init(elevatorNetwork[(int)elevatorNetworkOffsets::status], DBCond::RELATION::EQ, MOVE_STATUS);
 		DBCond tempCond4;
-		tempCond4.init(elevatorNetwork[(int)elevatorNetworkOffsets::status], DBCond::RELATION::EQ, MOVE_STATUS);
-		DBCond tempCond5;
-		tempCond5.init(elevatorNetwork[(int)elevatorNetworkOffsets::currentFloor], DBCond::RELATION::EQ, 0);
-		DBCond tempCond6;
-		tempCond6.init(elevatorNetwork[(int)elevatorNetworkOffsets::requestedFloor], DBCond::RELATION::EQ, selection);
-		DBCond tempCond7;
-		tempCond7.init(elevatorNetwork[(int)elevatorNetworkOffsets::otherInfo], DBCond::RELATION::EQ, "elevatorCar");
+		tempCond4.init(elevatorNetwork[(int)elevatorNetworkOffsets::floor], DBCond::RELATION::EQ, floor);
 
-		std::list<DBCond> insertConds = {tempCond1, tempCond2, tempCond3, tempCond4, tempCond5, tempCond6, tempCond7};
+		std::list<DBCond> insertConds = {tempCond1, tempCond2, tempCond3, tempCond4};
 
 		// Generate and perform the insert query
 		int rowsChanged = db.insert(tbElevatorNetwork, insertConds);

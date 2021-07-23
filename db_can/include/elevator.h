@@ -10,6 +10,18 @@
 #ifndef _elevator_h_
 #define _elevator_h_
 
+#define 	NODE_CAR	0
+#define 	NODE_AT_1	1
+#define 	NODE_AT_2	2
+#define 	NODE_AT_3	3
+
+#define		FLOOR_TO_NODE	0
+#define		FLOOR_TO_1	1
+#define		FLOOR_TO_2	2
+#define		FLOOR_TO_3	3
+#define		FLOOR_GO_DOWN	4
+#define		FLOOR_GO_UP	5
+
 class Elevator
 {
 public:
@@ -36,8 +48,8 @@ public:
         Last = dn_from_3
     } event;
 
-    int transition(int);
-    event* translateEvent(int);
+    int transition(int, int);
+    event* translateEvent(int, int);
 
 private:
     state CurState = state::at_3;

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+/* NEED ERROR CHECKING, DOCUMENTATION, AND OTHER STUFF */
+
 bool sendToFloor(int reqFloor)
 {
 	int floorCmd = 0;

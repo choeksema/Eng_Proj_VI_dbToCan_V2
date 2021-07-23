@@ -15,8 +15,8 @@
 using namespace std;
 
 
-#define     MOVE_STATUS         0
-// #define     FROM_OUTSIDE		1
+#define		MOVE_STATUS      	0
+#define	 	MOVING_NOW_STATUS	1
 #define		CURRENT_POS_STATUS	2
 
 
@@ -27,11 +27,11 @@ static string elevatorPswd = "ese";
 static string elevatorAddr = "tcp://localhost:3306";
 
 
-// elevatorNetwork table definitions
-static string tbElevatorNetwork = "elevatorNetwork";
+// oldElevatorNetwork table definitions
+static string tbOldElevatorNetwork = "oldElevatorNetwork";
 
 // Using typedefs would be better
-enum class elevatorNetworkOffsets {
+enum class oldElevatorNetworkOffsets {
 	date,
 	time,
 	nodeID,
@@ -43,7 +43,7 @@ enum class elevatorNetworkOffsets {
 	Last = otherInfo
 };
 
-static string elevatorNetwork[(int)elevatorNetworkOffsets::Last + 1] = {
+static string oldElevatorNetwork[(int)oldElevatorNetworkOffsets::Last + 1] = {
 	"date",
 	"time",
 	"nodeID",
@@ -67,6 +67,26 @@ typedef enum class button {
 } button;
 
 static string btnNames[(int)button::Last + 1] = {"1","2","3","1up","2dn","2up","3dn"};
+
+
+// elevatorNetwork table definitions
+static string tbElevatorNetwork = "elevatorNetwork";
+
+typedef enum class elevatorNetworkOffsets {
+	timestamp,
+	nodeID,
+	status,
+	floor,
+	First = timestamp,
+	Last = floor
+} elevatorNetworkOffsets;
+
+static string elevatorNetwork[(int)elevatorNetworkOffsets::Last + 1] = {
+	"timestamp",
+	"nodeID",
+	"status",
+	"floor"
+};
 
 
 // elevatorStats table definitions

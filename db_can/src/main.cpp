@@ -7,22 +7,12 @@
  * 		Caleb Hoeksema, Greg Huras, Andrew Sammut
  */
 
-
-/* 
- * Process:
- *   Website writes entries with status 0
- *   C++ finds entries with status 0 and moves the elevator accordingly
- *   C++ deletes the entries it found
- *   C++ updates the entry with status 2 with the new position of the elevator
- *   Website uses the entry with status 2 to get current position
- */
-
 #include "../../include/DB_Class.h"
 #include "../include/elevator.h"
 
 using namespace std;
 
-static string errMsgStart = (string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: ";
+#define 	errMsgStart	(string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: "
 
 
 int main(int argc, char** argv)
@@ -65,13 +55,16 @@ int main(int argc, char** argv)
 	    while (demoMode || (((dateTime->tm_hour >= 18) && (dateTime->tm_wday == 5)) 
 		&& ((dateTime->tm_hour <= 18) && (dateTime->tm_wday == 6))))    // Maybe use enums instead of values
 	    {
-		int newState = elevator.transition(floor);
+		int newState = elevator.transition(NODE_CAR, floor);
 		if (newState == 0)
 		    cout << "Elevator is moving" << endl;
 		else
 		    cout << "Elevator is at " << newState << endl;
 
 		sleep(30);    // Really should start the sleep from arrival on at a floor instead of departure
+
+		// UPDATE STATS HERE
+
 		floor++;
 		if (floor > 3)
 		    floor = 1;
@@ -79,69 +72,15 @@ int main(int argc, char** argv)
 		now = time(0);
 		dateTime = localtime(&now);
 	    } // while (Sabbath time check)
-	}
-
-
-	int selection = -1;
-	string userIn = "";
-
-	while ((0 > selection) || (selection > 6))
-	{
-	    userIn = "";
-	    cout << "Pick an option:" << endl;
-	    cout << "Inside options: To (1), To (2), To (3)" << endl;
-	    cout << "Outside options: Up from 1 (1up), Down from 2 (2dn), Up from 2 (2up), Down from 3 (3dn)" << endl;
-
-	    cin.clear();
-	    cin >> userIn;
-
-	    if (userIn == btnNames[(int)button::one])
-		selection = (int)button::one;
-	    else if (userIn == btnNames[(int)button::two])
-		selection = (int)button::two;
-	    else if (userIn == btnNames[(int)button::three])
-		selection = (int) button::three;
-	    else if (userIn == btnNames[(int)button::upFrom1])
-		selection = (int)button::upFrom1;
-	    else if (userIn == btnNames[(int)button::dnFrom2])
-		selection = (int)button::dnFrom2;
-	    else if (userIn == btnNames[(int)button::upFrom2])
-		selection = (int)button::upFrom2;
-	    else if (userIn == btnNames[(int)button::dnFrom3])
-		selection = (int)button::dnFrom3;
-	    else
-	    {
-		selection = -1;
-		if(cin.fail())
-		{
-		    cin.clear();
-		    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-		}
-	    }
-	}
-	int requestedFloor = -1;
-
-	/* Check elevator brains for next action */
-	int newState = elevator.transition(selection);
-	if (newState == 0)
-	{
-	    cout << "Elevator is moving" << endl;
-	    requestedFloor = newState;
-	}
-	else
-	{
-	    cout << "Elevator is at floor " << newState << "." << endl;
-	    requestedFloor = newState;
-	}
-
+	} // if(!overrideSabbathMode)
 
         /* Check for entries in the database */
 
         // Select columns
-        /*list<string> columns = {
-            elevatorNetwork[(int)elevatorNetworkOffsets::date], // Get date and time to identify the column again later
-            elevatorNetwork[(int)elevatorNetworkOffsets::time],
-            elevatorNetwork[(int)elevatorNetworkOffsets::requestedFloor]    // Get the request
+        list<string> columns = {
+            elevatorNetwork[(int)elevatorNetworkOffsets::timestamp], // to ID columns later
+            elevatorNetwork[(int)elevatorNetworkOffsets::nodeID],
+            elevatorNetwork[(int)elevatorNetworkOffsets::floor]    // REQ is split between nodID and floor
         };
 
         // Set conditions (kind of gross)
@@ -150,39 +89,33 @@ int main(int argc, char** argv)
         list<DBCond> conditions = {getStatus};
 
         // Execute query
-        sql::ResultSet* newEntries = db.select(tbElevatorNetwork, columns, conditions);
-        if(newEntries == nullptr)
+        vector<vector<string>> newEntries = db.select(tbElevatorNetwork, columns, conditions);
+        if(newEntries.size() == 0)
         {
-            cout << "No new entries found." << endl;
+            cout << errMsgStart << "No new entries found." << endl;
             cout << "Query: " << db.getQuery() << endl;
             continue;
         }
-	// cout << "Performed query: " << db.getQuery() << endl;
-	// cout << "Number of rows found: " << to_string(newEntries->getRow()) << endl;
-	newEntries->beforeFirst();
-        
-	cout << "We have " << to_string(newEntries->rowsCount()) << ". Trying to read results now" << endl;*/
 
-	//while (newEntries->next())
-        //{
-	// newEntries->first();
-            // cout << "in the while loop" << endl;
-	    /*try
-            {*/
-		// cout << "going through entries" << endl;
+	for (int row=1; row < (int)newEntries.size(); row++)    // First row is types
+     	{
+	    try
+            {
                 /* Now actually move the elevator */
                 // Gather values
-               /* string date = newEntries->getString(elevatorNetwork[(int)elevatorNetworkOffsets::date]);
-                string time = newEntries->getString(elevatorNetwork[(int)elevatorNetworkOffsets::time]);
-                int requestedFloor = newEntries->getInt(elevatorNetwork[(int)elevatorNetworkOffsets::requestedFloor]);
+                string dateTime = newEntries[row][0];    // Use "columns" offsets and not ints
+                int nodeID = stoi(newEntries[row][1]);
+                int floor = stoi(newEntries[row][2]);
 
-                cout << "Found a request to go to floor " << requestedFloor << "." << endl;*/
+		cout << "timestamp: " << dateTime << endl;
+		cout << "nodeID: " << nodeID << endl;
+		cout << "floor: " << floor << endl;
 
+		int requestedFloor = 0;
 
                 /* Activate elevator brains to see what to do next */
-                /*int newState = elevator.transition(requestedFloor);
-		cout << "Got a state" << endl;
-                if (newState == 0)
+                int newState = elevator.transition(nodeID, floor);
+                if (0 == newState)
                 {
                     cout << "Elevator is moving" << endl;
                     requestedFloor = newState;
@@ -191,41 +124,66 @@ int main(int argc, char** argv)
                 {
                     cout << "Elevator is at floor " << newState << "." << endl;
                     requestedFloor = newState;
-                }*/
-                // Need to update the floor once the elevator reaches the new floor!
+                }
 
-                /* Delete entry now that it is dealt with */
-                /*DBCond dateCond;
-                dateCond.init(elevatorNetwork[(int)elevatorNetworkOffsets::date], DBCond::RELATION::EQ, date);
-                DBCond timeCond;
-                timeCond.init(elevatorNetwork[(int)elevatorNetworkOffsets::time], DBCond::RELATION::EQ, time);
+		/* Update status if elevator is moving */
+		/*if (0 == requestedFloor)
+		{
+		    DBCond updateWhereTime;
+		    updateWhereTime.init(elevatorNetwork[(int)elevatorNetworkOffsets::timestamp], DBCond::RELATION::EQ, dateTime);
 
-                list<DBCond> deleteConds = {dateCond, timeCond};
-                if(!db._delete(tbElevatorNetwork, deleteConds))    // We know these rows should exist since we just 'SELECT'ed them
-                {
-                    cout << "Failed deleting entry." << endl;
-                    cout << "Query: " << db.getQuery() << endl;
-                    continue;
-                }*/
+		    list<DBCond> updateConds = {updateWhereTime};
+
+		    DBCond updateStatus;
+		    updateStatus.init(elevatorNetwork[(int)elevatorNetworkOffsets::status], DBCond::RELATION::EQ, MOVING_NOW_STATUS);
+
+		    list<DBCond> updateCols = {updateStatus};
+
+		    int rowsUpdated = db.update(tbElevatorNetwork, updateCols, updateConds);
+		    if(0 == rowsUpdated)
+		    {
+			cout << errMsgStart << "Rows not found to update status" << endl;
+			cout << "Query: " << db.getQuery();
+		    }
+		}*/
+		/* Delete entry if elevator is at the requested floor */
+		// else
+		// {
+		    DBCond deleteWhereTime;
+                    deleteWhereTime.init(elevatorNetwork[(int)elevatorNetworkOffsets::timestamp], DBCond::RELATION::EQ, dateTime);
+
+                    list<DBCond> deleteConds = {deleteWhereTime};
+
+		    int deleteResults = db._delete(tbElevatorNetwork, deleteConds);
+                    if(0 == deleteResults)    // These rows should exist (were just 'SELECT'ed)
+                    {
+                	cout << errMsgStart << "Failed deleting entry." << endl;
+                	cout << "Query: " << db.getQuery() << endl;
+                	continue;
+                    }
+		// }
 
 
                 /* Update database with new floor */
-                /*DBCond updateWhereStatus;
+                DBCond updateWhereStatus;
                 updateWhereStatus.init(elevatorNetwork[(int)elevatorNetworkOffsets::status], DBCond::RELATION::EQ, CURRENT_POS_STATUS);
                 list<DBCond> updateCols = {updateWhereStatus};
 
                 DBCond updateFloor;
-                updateFloor.init(elevatorNetwork[(int)elevatorNetworkOffsets::currentFloor], DBCond::RELATION::EQ, requestedFloor);
+                updateFloor.init(elevatorNetwork[(int)elevatorNetworkOffsets::floor], DBCond::RELATION::EQ, requestedFloor);    // Later only update this if at a floor. Otherwise change status of request to 1
                 list<DBCond> updateConds = {updateFloor};
 
-                if(!db.update(tbElevatorNetwork, updateConds, updateCols))
+		int updateRes = db.update(tbElevatorNetwork, updateConds, updateCols, true);
+                if(0 == updateRes)
                 {
-                    cout << "Failed updating current position. Query: " << db.getQuery() << endl;
+                    cout << errMsgStart << "Failed updating current position" << endl;
+		    cout << "Query: " << db.getQuery() << endl;
+		    cout << "Later set up to try adding a new row" << endl;
                 }
 
-                // If the elevator is moving, don't update or stats
+                // If the elevator is moving, don't update stats
                 if (requestedFloor == 0)
-                    continue;*/
+                    continue;
 
 
                 /* Update the stats table */
@@ -279,15 +237,16 @@ int main(int argc, char** argv)
                 {
                     cout << "Failed updating stats: " << ex.what() << endl;
                     continue;
-                }
+                }*/
             }
             catch (const exception& ex)
             {
                 cout << errMsgStart << ex.what() << endl;
                 continue;
             }
-        //}*/
-    }
+        } // End for(rows)
+	// sleep(10);
+    } // End while(1)
 
     cout << "Ending elevator moving program" << endl;
 

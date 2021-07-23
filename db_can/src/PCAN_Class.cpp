@@ -6,6 +6,8 @@
 
 // Assuming standard mode (extended is not supported at this time)
 
+/* NEED SOME ERROR CHECKING AND OTHER WORK */
+
 using namespace std;
 
 void PCAN::setMsg(int id, int data)

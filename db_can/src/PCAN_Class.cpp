@@ -81,42 +81,28 @@ int PCAN::receive()
 {
     while(1)
     {
+		while(RX_QUEUE_EMPTY == (status = CAN_Read(handle, &message)))
+			sleep(1);
+		
+		if (PCAN_NO_ERROR != status)
+		{
+			cout << "Error No. " << status << ". Returning." << endl;
+			return false;
+		}
 
-	while(RX_QUEUE_EMPTY == (status = CAN_Read(handle, &message)))
-		sleep(1);
-	
-	if (PCAN_NO_ERROR != status)
-	{
-		cout << "Error No. " << status << ". Returning." << endl;
-		return false;
-	}
-	
-	/*if ((STATUS_ID == message.ID) && (STATUS_LEN == message.LEN))
-	{
-		cout << "Status message so don't care" << endl;
-		continue;
-	}*/
+		if(message.ID != 257)    // 257 is 0x101
+			continue;
 
-	/*cout << "Message: ID = " << (int)message.ID 
-		 << ", LEN = " << (int)message.LEN
-		 << ", DATA = " << (int)message.DATA[0]
-		 << "." << endl;*/
-
-	if(message.ID != 257)    // 257 is 0x101
-	    continue;
-
-	switch((int)message.DATA[0])
-	{
-	    case (5):
-		return 1;    // floor 1
-	    case 6:
-		return 2;    // floor 2
-	    case 7:
-		return 3;    // floor 3
-	    default:
-		return 0;   // 4 means moving, otherwise just assume moving
-	
-	// return true;
-	}
+		switch((int)message.DATA[0])
+		{
+			case (5):
+				return 1;    // floor 1
+			case 6:
+				return 2;    // floor 2
+			case 7:
+				return 3;    // floor 3
+			default:
+				return 0;   // 4 means moving, otherwise just assume moving
+		}
     }
 }

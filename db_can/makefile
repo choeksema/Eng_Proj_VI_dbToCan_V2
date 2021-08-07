@@ -11,6 +11,8 @@ IDIR2=../include
 CFLAGS=-I$(IDIR)
 CFLAGS2=-I$(IDIR2)
 
+DEBUG=
+
 # Likely needs to change per platform
 LDIR=-L/usr/lib/arm-linux-gnueabihf#x86_64-linux-gnu
 LIBS=-l:libmysqlcppconn.so -lpcan
@@ -30,10 +32,10 @@ OBJ2=$(patsubst $(SDIR2)/%.cpp, $(ODIR2)/%.o, $(SRCS2))
 #$(info	Obj files: $(OBJ))
 
 $(ODIR)/%.o: $(SDIR)/%.cpp $(DEPS)
-	$(CC) $(WARN) -c -g -o $@ $< $(CFLAGS)
+	$(CC) $(WARN) $(DEBUG) -c -g -o $@ $< $(CFLAGS)
 
 $(ODIR2)/%.o: $(SDIR2)/%.cpp $(DEPS2)
-	$(CC) $(WARN) -c -g -o $@ $< $(CFLAGS2)
+	$(CC) $(WARN) $(DEBUG) -c -g -o $@ $< $(CFLAGS2)
 
 $(EXE): $(OBJ) $(OBJ2)
 	$(CC) $(WARN) -o $@ $^ $(CFLAGS) $(CFLAGS2) $(LDIR) $(LIBS)

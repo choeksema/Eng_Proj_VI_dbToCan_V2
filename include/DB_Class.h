@@ -47,10 +47,10 @@ public:
 	void setQuery(string);    // Get rid of?
 	string getQuery();
 
-	vector<vector<string>> select(string, std::list<string>, std::list<DBCond>);
-	int update(string, std::list<DBCond>, std::list<DBCond>, bool overwrite = false);
+	vector<vector<string>> select(string, std::list<string>, std::list<DBCond>, DBCond::LOGICAL_RELATION_JOIN, string sort = "", int order = 0);
+	int update(string, std::list<DBCond>, std::list<DBCond>, DBCond::LOGICAL_RELATION_JOIN, bool overwrite = false);
 	int insert(string, std::list<DBCond>);
-	int _delete(string, std::list<DBCond>, bool overwrite = false);
+	int _delete(string, std::list<DBCond>, DBCond::LOGICAL_RELATION_JOIN, bool overwrite = false);
 };
 
 #endif

@@ -19,6 +19,9 @@ using namespace std;
 #define	 	MOVING_NOW_STATUS	1
 #define		CURRENT_POS_STATUS	2
 
+#define 	ORDER_ASCEND		0
+#define		ORDER_DESCEND		1
+
 
 // General database definitions
 static string dbElevator = "elevator";

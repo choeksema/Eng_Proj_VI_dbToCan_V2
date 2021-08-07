@@ -10,17 +10,25 @@
 #ifndef _elevator_h_
 #define _elevator_h_
 
-#define 	NODE_CAR	0
-#define 	NODE_AT_1	1
-#define 	NODE_AT_2	2
-#define 	NODE_AT_3	3
+#include <tuple>
 
-#define		FLOOR_TO_NODE	0
-#define		FLOOR_TO_1	1
-#define		FLOOR_TO_2	2
-#define		FLOOR_TO_3	3
-#define		FLOOR_GO_DOWN	4
-#define		FLOOR_GO_UP	5
+#define 	NODE_CAR	            0
+#define 	NODE_AT_1	            1
+#define 	NODE_AT_2	            2
+#define 	NODE_AT_3	            3
+
+#define		FLOOR_TO_NODE	        0
+#define		FLOOR_TO_1	            1
+#define		FLOOR_TO_2	            2
+#define		FLOOR_TO_3	            3
+#define		FLOOR_GO_DOWN	        4
+#define		FLOOR_GO_UP	            5
+
+#define     REQ_NODE_ID             0
+#define     REQ_FLOOR               1
+
+#define 	ELEVATOR_FLOOR_TOP	    3
+#define 	ELEVATOR_FLOOR_BOTTOM	1
 
 class Elevator
 {
@@ -31,7 +39,7 @@ public:
         at_3,
         go_up,
         go_dn,
-        COND,           // Need to figure this
+        COND,
         First = at_1,
         Last = go_dn
     } state;
@@ -48,11 +56,11 @@ public:
         Last = dn_from_3
     } event;
 
-    int transition(int, int);
-    event* translateEvent(int, int);
+    int transition();
 
 private:
     state CurState = state::at_3;
+    int LastFloor = 3;    // Store the last floor it was at
 
     // Transition Table
     const state NextState[(int)state::Last + 1][(int)event::Last + 1] = {
@@ -63,6 +71,9 @@ private:
         {  state::go_up, state::COND,  state::at_3,  state::go_up, state::go_up, state::COND,  state::at_3  }, // go_up
         {  state::at_1,  state::COND,  state::go_dn, state::at_1,  state::COND,  state::go_dn, state::go_dn }  // go_dn
     };
+
+    std::tuple<int,int> getNextState();
+    event* translateEvent(int, int);
 };
 
 #endif

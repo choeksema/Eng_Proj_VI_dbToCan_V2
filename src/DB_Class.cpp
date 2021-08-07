@@ -248,11 +248,13 @@ vector<vector<string>> DB::executeRead()
 	catch(const exception& ex)
 	{
 		cout << errMsgStart << ex.what() << endl;
+		cout << "Query is: " << Query << endl;
 		return {};
 	}
 	catch(const char* msg)
 	{
 		cout << errMsgStart << msg << endl;
+		cout << "Query is: " << Query << endl;
 		return {};
 	}
 
@@ -297,12 +299,14 @@ int DB::executeWrite()
 	catch(const exception &ex)
 	{
 		cout << errMsgStart << ex.what() << endl;
+		cout << "\tQuery is: " << Query << endl;
 		return 0;
 	}
 	catch(const char* msg)
 	{
-		cout << "Write Error: " << msg << endl;
-		cout << "Warning: Table may have been edited. Should use DB transactions if possible." << endl;
+		cout << errMsgStart << "Write Error: " << msg << endl;
+		cout << "\tWarning: Table may have been edited. Should use DB transactions if possible." << endl;
+		cout << "\tQuery is: " << Query << endl;
 		return 0;
 	}
 
@@ -374,7 +378,7 @@ vector<vector<string>> DB::resultsToVector(sql::ResultSet* rawResults)
  *
  * Returns <vector<vector<string>>: 2D vector of query results (empty set indicates error)
  */
-vector<vector<string>> DB::select(string table, std::list<string> colNames, std::list<DBCond> conds)
+vector<vector<string>> DB::select(string table, std::list<string> colNames, std::list<DBCond> conds, DBCond::LOGICAL_RELATION_JOIN condJoin, string sort, int order)
 {
 	vector<vector<string>> results;
 
@@ -401,8 +405,14 @@ vector<vector<string>> DB::select(string table, std::list<string> colNames, std:
 			{
 				tempConds.push_back((*it).getExpression());
 			}
-			DBCond stupidInstatiantionThatShouldntBeNeeded;
-			ss << stupidInstatiantionThatShouldntBeNeeded.join(tempConds, DBCond::LOGICAL_RELATION_JOIN::AND);
+			ss << DBCond::join(tempConds, condJoin);
+		}
+
+		if (sort != "")
+		{
+			ss << " ORDER BY " << sort;
+			if (ORDER_DESCEND == order)
+				ss << " DESC";
 		}
 
 		ss << ";";
@@ -444,7 +454,7 @@ vector<vector<string>> DB::select(string table, std::list<string> colNames, std:
  *
  * Returns int: number of entries updated (0 indicates error)
  */
-int DB::update(string table, list<DBCond> columns, list<DBCond> conds, bool overwrite)
+int DB::update(string table, list<DBCond> columns, list<DBCond> conds, DBCond::LOGICAL_RELATION_JOIN condJoin, bool overwrite)
 {
 	int updatedRows = 0;
 	try
@@ -454,8 +464,6 @@ int DB::update(string table, list<DBCond> columns, list<DBCond> conds, bool over
 			cout << "No updates specified.";
 			return 0;    // Indicates no rows changed (error)
 		}
-		
-		DBCond stupidInstatiantionThatShouldntBeNeeded;
 		
 		list<string> tempCols;
 		
@@ -483,7 +491,7 @@ int DB::update(string table, list<DBCond> columns, list<DBCond> conds, bool over
 			{
 				tempConds.push_back((*it).getExpression());
 			}
-			ss << stupidInstatiantionThatShouldntBeNeeded.join(tempConds, DBCond::LOGICAL_RELATION_JOIN::AND);
+			ss << DBCond::join(tempConds, condJoin);
 		}
 
 		ss << ";";
@@ -566,7 +574,7 @@ int DB::insert(string table, std::list<DBCond> newValues)
  *
  * Returns int: number of entries updated (0 indicates error)
  */
-int DB::_delete(string table, std::list<DBCond> conds, bool overwrite)
+int DB::_delete(string table, std::list<DBCond> conds, DBCond::LOGICAL_RELATION_JOIN condJoin, bool overwrite)
 {
 	int deletedRows = 0;
 	try
@@ -590,8 +598,7 @@ int DB::_delete(string table, std::list<DBCond> conds, bool overwrite)
 			{
 				tempConds.push_back((*it).getExpression());
 			}
-			DBCond stupidInstatiantionThatShouldntBeNeeded;
-			ss << stupidInstatiantionThatShouldntBeNeeded.join(tempConds, DBCond::LOGICAL_RELATION_JOIN::AND);
+			ss << DBCond::join(tempConds, condJoin);
 		}
 
 		ss << ";";

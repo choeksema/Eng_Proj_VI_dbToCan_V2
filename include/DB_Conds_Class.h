@@ -43,7 +43,7 @@ public:
 	bool init(string, RELATION, int);
 
 	string getExpression();
-	string join(std::list<string>, LOGICAL_RELATION_JOIN);
+	static string join(std::list<string>, LOGICAL_RELATION_JOIN);
 	static string joinColumns(std::list<DBCond>, string);
 	static string joinValues(std::list<DBCond>, string);
 
@@ -81,7 +81,7 @@ private:
 	const string Rels[(int)DBCond::RELATION::Last - 1] = {"<", "<=", "=", ">=", ">", "<>"};
 
 	// List of relations between conditions (Eg: WHERE cond1 AND cond2)
-	const string LogRels[(int)DBCond::LOGICAL_RELATION_JOIN::Last - 1] = {" AND ", " OR "};
+	static const string LogRels[(int)DBCond::LOGICAL_RELATION_JOIN::Last - 1]; // = {" AND ", " OR "};
 	const string SpecialMySqlStrings[5] = {"CURRENT_DATE", "CURRENT_TIME", "DEFAULT", "test", "test2"};
 
 	// Private members

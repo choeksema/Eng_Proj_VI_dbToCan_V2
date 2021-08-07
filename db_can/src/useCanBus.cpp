@@ -65,21 +65,16 @@ int getFloor()
 
     if(!pecan.openInit(PCAN_PATH, DEF_NFLAG, CAN_BAUD_125K))
     {
-	cout << "Failed opening PCAN channel" << endl;
-	return -1;
+		cout << "Failed opening PCAN channel" << endl;
+		return -1;
     }
 
     int floor = pecan.receive();
-    /*if(!pecan.receive(*//*ID_CAR_NODE*//*))
-    {
-	cout << "Failed getting current floor" << endl;
-	return -1;
-    }*/
 
     if(!pecan.close())
     {
-	cout << "Failed closing PCAN channel" << endl;
-	return -1;
+		cout << "Failed closing PCAN channel" << endl;
+		return -1;
     }
 
     return floor;

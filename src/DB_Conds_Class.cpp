@@ -16,7 +16,10 @@
 using namespace std;
 
 // String doesn't quite work yet --> could fix with a logger and <sourcelocation>
-static string errMsgStart = (string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: ";
+#define 	errMsgStart		(string)"<" + (string)__FILE__ + (string)"@" + to_string(__LINE__) + (string)">: "
+
+static const string LogRelsData[(int)DBCond::LOGICAL_RELATION_JOIN::Last - 1] = {" AND ", " OR "};
+const string DBCond::LogRels[(int)DBCond::LOGICAL_RELATION_JOIN::Last - 1] = LogRelsData;
 
 
 /*
